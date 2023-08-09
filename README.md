@@ -20,7 +20,8 @@ git clone https://github.com/RogerA11/Mammal-Type-Classifier.git
 ```
 
 2. Navigate to the repository:
-```cd Mammal-Type-Classifier
+```
+cd Mammal-Type-Classifier
 ```
 
 3. Open and run `mammaltypeclassifier.ipynb` to explore the project details.
