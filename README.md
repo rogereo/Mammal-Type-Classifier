@@ -2,7 +2,7 @@
 
 This repository contains a mammal type classifier built using a pretrained neural network. The classifier can identify and categorize mammals into five primary groups: carnivores, marsupials, primates, rodents, and ungulates
 
-![Logo](images/output.png)
+![Logo](model/images/output.png)
 
 ## Overview
 
