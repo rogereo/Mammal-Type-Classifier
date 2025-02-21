@@ -1,29 +1,17 @@
 import os
 import pickle
-import random
 import gradio as gr
 import torch
 import torch.nn.functional as F
 from torchvision import transforms
 from PIL import Image
-import matplotlib.pyplot as plt
 import numpy as np
 from dotenv import load_dotenv
 
-# debugging 
-from gradio.components import Gallery
-
-print("Gradio version:", gr.__version__)
-print("Gradio location:", gr.__file__)
-print("Gallery component:", Gallery)
-
-# load env vars
+# Load environment variables
 load_dotenv()
-
-# read gemini api key from environment
 genai_api_key = os.getenv("GENAI_API_KEY")
 
-# optional: google genai
 HAVE_GENAI = False
 try:
     from google import genai
@@ -31,41 +19,33 @@ try:
         client = genai.Client(api_key=genai_api_key)
         HAVE_GENAI = True
     else:
-        print("warning: GENAI_API_KEY not set, fun facts won't work.")
+        print("warning: GENAI_API_KEY not set, fun facts and summary won't work.")
 except ImportError:
-    print("warning: google-genai library not installed, fun facts won't work.")
+    print("warning: google-genai library not installed, fun facts and summary won't work.")
 
-# your class names (adjust to your dataset)
-CLASS_NAMES = ['carnivore', 'marsupial', 'primate', 'rodent', 'ungulate']
+CLASS_NAMES = ['Carnivore', 'Marsupial', 'Primate', 'Rodent', 'Ungulate']
 
-# define paths to pickled models
 MODEL_PATHS = {
-    "resnet":        "mammal_classifier_resnet.pkl",
-    "efficientnet":  "mammal_classifier_efficientnet.pkl",
-    "mobilenet":     "mammal_classifier_mobilenet.pkl"
+    "Resnet":        "mammal_classifier_resnet.pkl",
+    "Efficientnet":  "mammal_classifier_efficientnet.pkl",
+    "Mobilenet":     "mammal_classifier_mobilenet.pkl"
 }
 
 models = {}
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
 def load_models():
-    # load your saved pickle files into a dict
     for name, filename in MODEL_PATHS.items():
-        path = os.path.join("models", filename)  # relative to 'app.py'
+        path = os.path.join("models", filename)
         with open(path, "rb") as f:
             model = pickle.load(f)
             model.to(device)
             model.eval()
             models[name] = model
 
-def predict_with_model(model, image, actual_label):
-    """
-    Runs inference on a single model & image.
-    Returns (fig, predicted_label, is_correct)
-    
-    Updated to match training: resize, convert to tensor, then normalize
-    with ImageNet stats (or your training values).
-    """
+
+def predict_with_model_text(model, image, actual_label):
     transform = transforms.Compose([
         transforms.Resize((192, 192)),
         transforms.ToTensor(),
@@ -79,7 +59,7 @@ def predict_with_model(model, image, actual_label):
 
     pred_idx = output.argmax(dim=1).item()
     pred_label = CLASS_NAMES[pred_idx]
-    prob_val = F.softmax(output, dim=1)[0, pred_idx].item()
+    prob_val = torch.softmax(output, dim=1)[0, pred_idx].item()
 
     loss_val = 0.0
     is_correct = False
@@ -88,21 +68,16 @@ def predict_with_model(model, image, actual_label):
         loss_val = F.cross_entropy(output, torch.tensor([actual_idx], device=device)).item()
         is_correct = (pred_label == actual_label)
 
-    # Create a figure with "model_name/pred_label/actual_label/loss/prob"
-    fig = plt.figure(figsize=(4, 4))
-    plt.imshow(image)
-    title_str = f"{model.__class__.__name__}/{pred_label}/{actual_label}/{loss_val:.2f}/{prob_val:.2f}"
-    color = "black" if is_correct else "red"
-    plt.title(title_str, fontsize=10, color=color)
-    plt.axis("off")
+    result_text = (
+        f"P  |   {pred_label}\n"
+        f"A  |   {actual_label}\n"
+        f"L  |   {loss_val:.2f}\n"
+        f"P  |   {prob_val:.2f}"
+    )
+    return result_text, pred_label, is_correct
 
-    return fig, pred_label, is_correct
 
-# gemini llm
 def generate_fun_fact(mammal_name):
-    """
-    Uses Google GenAI to generate a fun fact, if available.
-    """
     if not HAVE_GENAI or not mammal_name:
         return ""
     
@@ -117,102 +92,105 @@ def generate_fun_fact(mammal_name):
             contents=prompt
         )
         fact = response.text.strip()
-        
-        # Remove any leading title like "Fun Fact:"
         if fact.lower().startswith("fun fact:"):
             fact = fact[len("Fun Fact:"):].strip()
-        
         return fact
     except Exception as e:
         return f"Error generating fun fact: {e}"
 
 
-# classify mammal
-def classify_mammal(image, model_choice, actual_label):
+def generate_summary(results, actual_label):
     """
-    Main function for Gradio:
-    - If 'Compare All', predict with each model.
-    - Otherwise, use the chosen model.
-    Returns figure(s) + optional fun_fact.
+    Uses Gemini to summarize the results of all models.
+    `results` is a list of text strings from each model.
     """
-    results = []
-    fun_fact = ""
+    if not HAVE_GENAI:
+        return ""
+    
+    # Build a summary prompt. You can adjust this prompt as needed.
+    prompt = (
+        f"Given the following predictions from three models and the actual label, "
+        f"please provide a concise summary comparing the predictions. "
+        f"Indicate which model(s) were correct, which were incorrect, "
+        f"and how they compare overall.\n\n"
+        f"Actual Label: {actual_label}\n\n"
+        f"Model Predictions:\n"
+    )
+    for idx, result in enumerate(results, start=1):
+        prompt += f"Model {idx}: {result}\n"
+    
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt
+        )
+        summary = response.text.strip()
+        return summary
+    except Exception as e:
+        return f"Error generating summary: {e}"
 
-    if model_choice == "Compare All":
-        for name, model in models.items():
-            fig, pred_label, is_correct = predict_with_model(model, image, actual_label)
-            results.append(fig)
-            if is_correct:
-                fun_fact = generate_fun_fact(pred_label)
-        return results, fun_fact
-    else:
-        model = models[model_choice]
-        fig, pred_label, is_correct = predict_with_model(model, image, actual_label)
+
+def classify_mammal(image, actual_label):
+    """
+    Always runs all three models.
+    Returns:
+      - A list of strings (one for each model)
+      - A Gemini summary string
+      - A Gemini fun fact string (if any model is correct)
+    """
+    text_outputs = []
+    fun_fact = ""
+    for name, model in models.items():
+        text_out, pred_label, is_correct = predict_with_model_text(model, image, actual_label)
+        text_outputs.append(text_out)
         if is_correct:
             fun_fact = generate_fun_fact(pred_label)
-        return fig, fun_fact
+    summary = generate_summary(text_outputs, actual_label)
+    return text_outputs, summary, fun_fact
 
-# Gradio interface
+
 def build_interface():
-    """
-    Returns a Gradio Blocks interface.
-    """
-    model_opts = list(MODEL_PATHS.keys()) + ["Compare All"]
-
     with gr.Blocks() as demo:
         gr.Markdown("# Mammal Type Classifier")
 
         with gr.Row():
+            # Left Column: image upload, Actual label dropdown, and Classify button.
             with gr.Column():
-                # Set type="pil" so that the image is provided as a PIL image.
-                image_input = gr.Image(label="upload a mammal image", type="pil")
-                model_choice = gr.Dropdown(
-                    choices=model_opts, 
-                    value="resnet",
-                    label="select model or 'compare all'"
-                )
+                image_input = gr.Image(label="Upload a mammal image", type="pil")
                 actual_label = gr.Dropdown(
-                    choices=CLASS_NAMES + ["unknown"],
-                    value="unknown",
-                    label="actual label (optional for loss)"
+                    choices=CLASS_NAMES + ["Unknown"],
+                    value="Unknown",
+                    label="Actual label (optional for loss)"
                 )
-                classify_button = gr.Button("classify")
+                classify_button = gr.Button("Classify")
 
+            # Right Column:
+            # 1) A row of three textboxes for model results (side by side).
+            # 2) A textbox for Gemini Summary of Result.
+            # 3) A textbox for Gemini Fun Fact.
             with gr.Column():
-                outputs_gallery = Gallery(label="results", show_label=False)
-                fun_fact_output = gr.Textbox(
-                    label="fun fact (if predicted correctly)",
-                    lines=4
-                )
+                with gr.Row():
+                    result_output_1 = gr.Textbox(label="Resnet", lines=4)
+                    result_output_2 = gr.Textbox(label="Efficientnet", lines=4)
+                    result_output_3 = gr.Textbox(label="Mobilenet", lines=4)
+                summary_output = gr.Textbox(label="Gemini Summary of Result", lines=4)
+                fun_fact_output = gr.Textbox(label="Gemini Fun Fact (if predicted correctly)", lines=4)
 
-        def on_classify(img, choice, actual):
-            result, fun_fact = classify_mammal(img, choice, actual)
-            
-            # Convert matplotlib figures to PIL images for Gradio.
-            def convert_fig_to_pil(fig):
-                fig.canvas.draw()
-                w, h = fig.canvas.get_width_height()
-                buf = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8)
-                # Reshape to (height, width, 4) and drop the alpha channel:
-                arr = buf.reshape(h, w, 4)[:, :, :3]
-                pil_img = Image.fromarray(arr)
-                plt.close(fig)
-                return pil_img
-
-            if isinstance(result, list):
-                converted = [convert_fig_to_pil(fig) for fig in result]
-                return [converted, fun_fact]
-            else:
-                pil_img = convert_fig_to_pil(result)
-                return [[pil_img], fun_fact]
+        def on_classify(img, actual):
+            results, summary, fun_fact = classify_mammal(img, actual)
+            # results is always a list of 3 strings
+            while len(results) < 3:
+                results.append("")
+            return results[0], results[1], results[2], summary, fun_fact
 
         classify_button.click(
             fn=on_classify,
-            inputs=[image_input, model_choice, actual_label],
-            outputs=[outputs_gallery, fun_fact_output]
+            inputs=[image_input, actual_label],
+            outputs=[result_output_1, result_output_2, result_output_3, summary_output, fun_fact_output]
         )
 
     return demo
+
 
 if __name__ == "__main__":
     load_models()
