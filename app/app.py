@@ -8,25 +8,22 @@ from torchvision import transforms
 from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
+from dotenv import load_dotenv
 
 # debugging 
-import gradio as gr
 from gradio.components import Gallery
 
 print("Gradio version:", gr.__version__)
 print("Gradio location:", gr.__file__)
-print("Gallery component:", gr.Gallery)
-
+print("Gallery component:", Gallery)
 
 # load env vars
-from dotenv import load_dotenv
 load_dotenv()
 
 # read gemini api key from environment
 genai_api_key = os.getenv("GENAI_API_KEY")
 
 # optional: google genai
-# pip install google-genai
 HAVE_GENAI = False
 try:
     from google import genai
@@ -63,12 +60,17 @@ def load_models():
 
 def predict_with_model(model, image, actual_label):
     """
-    runs inference on a single model & image
-    returns (fig, predicted_label, is_correct)
+    Runs inference on a single model & image.
+    Returns (fig, predicted_label, is_correct)
+    
+    Updated to match training: resize, convert to tensor, then normalize
+    with ImageNet stats (or your training values).
     """
     transform = transforms.Compose([
         transforms.Resize((192, 192)),
-        transforms.ToTensor()
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])
     ])
     img_tensor = transform(image).unsqueeze(0).to(device)
 
@@ -86,8 +88,8 @@ def predict_with_model(model, image, actual_label):
         loss_val = F.cross_entropy(output, torch.tensor([actual_idx], device=device)).item()
         is_correct = (pred_label == actual_label)
 
-    # create a figure with "model_name/pred_label/actual_label/loss/prob"
-    fig = plt.figure(figsize=(4,4))
+    # Create a figure with "model_name/pred_label/actual_label/loss/prob"
+    fig = plt.figure(figsize=(4, 4))
     plt.imshow(image)
     title_str = f"{model.__class__.__name__}/{pred_label}/{actual_label}/{loss_val:.2f}/{prob_val:.2f}"
     color = "black" if is_correct else "red"
@@ -99,32 +101,39 @@ def predict_with_model(model, image, actual_label):
 # gemini llm
 def generate_fun_fact(mammal_name):
     """
-    uses google genai to generate a fun fact, if available
+    Uses Google GenAI to generate a fun fact, if available.
     """
     if not HAVE_GENAI or not mammal_name:
         return ""
     
     prompt = (
         f"Provide a fun fact about {mammal_name} mammals related to how they "
-        f"are similar and dissimilar to humans. respond with a simple, clear, "
-        f"concise, and structured response."
+        f"are similar and dissimilar to humans. Respond with a simple, clear, "
+        f"concise, and structured response. Do not include a title such as 'Fun Fact'."
     )
     try:
         response = client.models.generate_content(
             model="gemini-2.0-flash",
             contents=prompt
         )
-        return response.text
+        fact = response.text.strip()
+        
+        # Remove any leading title like "Fun Fact:"
+        if fact.lower().startswith("fun fact:"):
+            fact = fact[len("Fun Fact:"):].strip()
+        
+        return fact
     except Exception as e:
-        return f"error generating fun fact: {e}"
+        return f"Error generating fun fact: {e}"
+
 
 # classify mammal
 def classify_mammal(image, model_choice, actual_label):
     """
-    main function for gradio:
-    if 'compare all', predict with each model
-    otherwise, use the chosen model
-    returns figure(s) + optional fun_fact
+    Main function for Gradio:
+    - If 'Compare All', predict with each model.
+    - Otherwise, use the chosen model.
+    Returns figure(s) + optional fun_fact.
     """
     results = []
     fun_fact = ""
@@ -143,19 +152,20 @@ def classify_mammal(image, model_choice, actual_label):
             fun_fact = generate_fun_fact(pred_label)
         return fig, fun_fact
 
-# gradio interface
+# Gradio interface
 def build_interface():
     """
-    returns a gradio Blocks interface
+    Returns a Gradio Blocks interface.
     """
     model_opts = list(MODEL_PATHS.keys()) + ["Compare All"]
 
     with gr.Blocks() as demo:
-        gr.Markdown("# Mammal Classifier")
+        gr.Markdown("# Mammal Type Classifier")
 
         with gr.Row():
             with gr.Column():
-                image_input = gr.Image(label="upload a mammal image")
+                # Set type="pil" so that the image is provided as a PIL image.
+                image_input = gr.Image(label="upload a mammal image", type="pil")
                 model_choice = gr.Dropdown(
                     choices=model_opts, 
                     value="resnet",
@@ -169,9 +179,7 @@ def build_interface():
                 classify_button = gr.Button("classify")
 
             with gr.Column():
-                outputs_gallery = gr.Gallery(
-                    label="results", show_label=False
-                ).scale(grid=[2], height="auto")
+                outputs_gallery = Gallery(label="results", show_label=False)
                 fun_fact_output = gr.Textbox(
                     label="fun fact (if predicted correctly)",
                     lines=4
@@ -180,31 +188,23 @@ def build_interface():
         def on_classify(img, choice, actual):
             result, fun_fact = classify_mammal(img, choice, actual)
             
-            # convert matplotlib figures to PIL images for Gradio
-            if isinstance(result, list):
-                # multiple
-                converted = []
-                for fig in result:
-                    fig.canvas.draw()
-                    buf = fig.canvas.tostring_rgb()
-                    w, h = fig.canvas.get_width_height()
-                    arr = np.frombuffer(buf, dtype=np.uint8).reshape(h, w, 3)
-                    from PIL import Image
-                    pil_img = Image.fromarray(arr)
-                    plt.close(fig)
-                    converted.append(pil_img)
-                return [converted, fun_fact]
-            else:
-                # single figure
-                fig = result
+            # Convert matplotlib figures to PIL images for Gradio.
+            def convert_fig_to_pil(fig):
                 fig.canvas.draw()
-                buf = fig.canvas.tostring_rgb()
                 w, h = fig.canvas.get_width_height()
-                arr = np.frombuffer(buf, dtype=np.uint8).reshape(h, w, 3)
-                from PIL import Image
+                buf = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8)
+                # Reshape to (height, width, 4) and drop the alpha channel:
+                arr = buf.reshape(h, w, 4)[:, :, :3]
                 pil_img = Image.fromarray(arr)
                 plt.close(fig)
-                return [pil_img, fun_fact]
+                return pil_img
+
+            if isinstance(result, list):
+                converted = [convert_fig_to_pil(fig) for fig in result]
+                return [converted, fun_fact]
+            else:
+                pil_img = convert_fig_to_pil(result)
+                return [[pil_img], fun_fact]
 
         classify_button.click(
             fn=on_classify,
