@@ -171,6 +171,15 @@ def build_interface():
         with gr.Row():
             # Left Column: image upload, Actual label dropdown, and Classify button.
             with gr.Column():
+                gr.Markdown("""
+List of animals used to train the models (rougly 50 images per animal)
+- **Carnivores**: Bears, leopards, lions, tigers, and wolves 
+- **Marsupials**: Kangaroos, koalas, opossums, wallabies, and wombats 
+- **Primates**:  Baboons, capuchin monkeys, chimpanzees, gorillas, and orangutans 
+- **Rodents**: Beavers, mice, porcupine, rats, and squirrels 
+- **Ungulates**: Deer, elk, giraffes, moose, and zebras \n
+(suggestion would be to google an image of an animal, take a screenshot, and paste it in below) 
+        """)
                 image_input = gr.Image(label="Upload a mammal image", type="pil")
                 actual_label = gr.Dropdown(
                     choices=CLASS_NAMES,
