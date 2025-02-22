@@ -99,26 +99,29 @@ def generate_fun_fact(mammal_name):
         return f"Error generating fun fact: {e}"
 
 
-def generate_summary(results, actual_label):
+def generate_summary(results, actual_label, model_names):
     """
-    Uses Gemini to summarize the results of all models.
-    `results` is a list of text strings from each model.
+    uses Gemini to summarize the results of all models
     """
     if not HAVE_GENAI:
         return ""
-    
-    # Build a summary prompt. You can adjust this prompt as needed.
+
     prompt = (
-        f"Given the following predictions from three models and the actual label, "
-        f"please provide a concise summary comparing the predictions. "
-        f"Indicate which model(s) were correct, which were incorrect, "
-        f"and how they compare overall.\n\n"
-        f"Actual Label: {actual_label}\n\n"
-        f"Model Predictions:\n"
+        "Analyze the following predictions from three models relative to "
+        f"the actual label: {actual_label}.\n\n"
+        "Each model output includes the predicted label, actual label, loss, "
+        "and prediction probability.\n\n"
+        "Please provide a short, direct summary (50 words or fewer) that includes:\n"
+        "1. Which model(s) predicted correctly (if any).\n"
+        "2. Any key performance differences (loss or probability).\n"
+        "3. One notable insight.\n\n"
+        "Model Predictions:\n"
     )
-    for idx, result in enumerate(results, start=1):
-        prompt += f"Model {idx}: {result}\n"
-    
+
+    # Instead of enumerating, use the model_names directly
+    for model_name, result in zip(model_names, results):
+        prompt += f"{model_name}: {result}\n"
+
     try:
         response = client.models.generate_content(
             model="gemini-2.0-flash",
@@ -129,8 +132,8 @@ def generate_summary(results, actual_label):
     except Exception as e:
         return f"Error generating summary: {e}"
 
-
-def classify_mammal(image, actual_label):
+# classify_mammal function
+def classify_mammal(image, actual_label, model_names):
     """
     Always runs all three models.
     Returns:
@@ -139,14 +142,26 @@ def classify_mammal(image, actual_label):
       - A Gemini fun fact string (if any model is correct)
     """
     text_outputs = []
+    model_names = []
     fun_fact = ""
+
     for name, model in models.items():
-        text_out, pred_label, is_correct = predict_with_model_text(model, image, actual_label)
+        text_out, pred_label, is_correct = predict_with_model_text(
+            model, 
+            image, 
+            actual_label
+        )
         text_outputs.append(text_out)
+        model_names.append(name)  # keep track of the model name in the same order
+
         if is_correct:
             fun_fact = generate_fun_fact(pred_label)
-    summary = generate_summary(text_outputs, actual_label)
+
+    # pass model_names to the updated generate_summary function
+    summary = generate_summary(text_outputs, actual_label, model_names)
+
     return text_outputs, summary, fun_fact
+
 
 
 def build_interface():
@@ -158,26 +173,33 @@ def build_interface():
             with gr.Column():
                 image_input = gr.Image(label="Upload a mammal image", type="pil")
                 actual_label = gr.Dropdown(
-                    choices=CLASS_NAMES + ["Unknown"],
-                    value="Unknown",
-                    label="Actual label (optional for loss)"
+                    choices=CLASS_NAMES,
+                    # value="Unknown",
+                    label="Actual label"
                 )
                 classify_button = gr.Button("Classify")
 
-            # Right Column:
-            # 1) A row of three textboxes for model results (side by side).
-            # 2) A textbox for Gemini Summary of Result.
-            # 3) A textbox for Gemini Fun Fact.
+            # a row of three textboxes for model results (side by side)
             with gr.Column():
+                # model results textboxes
+                gr.Markdown("Model Results")
                 with gr.Row():
                     result_output_1 = gr.Textbox(label="Resnet", lines=4)
                     result_output_2 = gr.Textbox(label="Efficientnet", lines=4)
                     result_output_3 = gr.Textbox(label="Mobilenet", lines=4)
-                summary_output = gr.Textbox(label="Gemini Summary of Result", lines=4)
-                fun_fact_output = gr.Textbox(label="Gemini Fun Fact (if predicted correctly)", lines=4)
+                gr.Markdown("**P = Prediction | A = Actual | L = Loss | P = Probability**")
+
+                # gemini summary and Fun Fact textboxes
+                gr.Markdown("Gemini Summary and Fun Fact")
+                summary_output = gr.Textbox(label="Summary", lines=4)
+                fun_fact_output = gr.Textbox(label="Fun Fact (if any model predicts correctly)", lines=4)
 
         def on_classify(img, actual):
-            results, summary, fun_fact = classify_mammal(img, actual)
+            results, summary, fun_fact = classify_mammal(
+                img, 
+                actual, 
+                MODEL_PATHS.keys()
+                )
             # results is always a list of 3 strings
             while len(results) < 3:
                 results.append("")
