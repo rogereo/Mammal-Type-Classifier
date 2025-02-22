@@ -81,11 +81,25 @@ def generate_fun_fact(mammal_name):
     if not HAVE_GENAI or not mammal_name:
         return ""
     
+    # mapping mammal types to specific animal examples
+    animal_context = {
+        "Carnivore": "Bears, leopards, lions, tigers, and wolves",
+        "Marsupial": "Kangaroos, koalas, opossums, wallabies, and wombats",
+        "Primate": "Baboons, capuchin monkeys, chimpanzees, gorillas, and orangutans",
+        "Rodent": "Beavers, mice, porcupine, rats, and squirrels",
+        "Ungulate": "Deer, elk, giraffes, moose, and zebras"
+    }
+    
+    # retrieve the list of animals for the given mammal type (if available)
+    animals = animal_context.get(mammal_name, "various species")
+    
     prompt = (
-        f"Provide a fun fact about {mammal_name} mammals related to how they "
-        f"are similar and dissimilar to humans. Respond with a simple, clear, "
-        f"concise, and structured response. Do not include a title such as 'Fun Fact'."
+        f"Provide a fun fact about {mammal_name} mammals, which include animals such as {animals}. "
+        "Focus on how these mammals are similar and dissimilar to humans. "
+        "Respond with a simple, clear, concise, and structured response. "
+        "Do not include a title such as 'Fun Fact'."
     )
+    
     try:
         response = client.models.generate_content(
             model="gemini-2.0-flash",
@@ -97,6 +111,7 @@ def generate_fun_fact(mammal_name):
         return fact
     except Exception as e:
         return f"Error generating fun fact: {e}"
+
 
 
 def generate_summary(results, actual_label, model_names):
