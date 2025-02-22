@@ -206,16 +206,17 @@ List of animals used to train the models (rougly 50 images per animal)
             # a row of three textboxes for model results (side by side)
             with gr.Column():
                 # model results textboxes
-                gr.Markdown("Model Results")
+                gr.Markdown("Model Performance")
+                gr.Markdown("<div style='font-size:11px;'>P = Prediction | A = Actual | L = Loss | P = Probability</div>")
                 with gr.Row():
                     result_output_1 = gr.Textbox(label="Resnet", lines=4)
                     result_output_2 = gr.Textbox(label="Efficientnet", lines=4)
                     result_output_3 = gr.Textbox(label="Mobilenet", lines=4)
-                gr.Markdown("**P = Prediction | A = Actual | L = Loss | P = Probability**")
+                
 
                 # gemini summary and Fun Fact textboxes
-                gr.Markdown("Gemini Summary and Fun Fact")
-                summary_output = gr.Textbox(label="Summary", lines=4)
+                gr.Markdown("Google Gemini LLM")
+                summary_output = gr.Textbox(label="Performance Summary", lines=4)
                 fun_fact_output = gr.Textbox(label="Fun Fact (if any model predicts correctly)", lines=4)
 
         def on_classify(img, actual):
