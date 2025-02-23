@@ -26,9 +26,9 @@ except ImportError:
 CLASS_NAMES = ['Carnivore', 'Marsupial', 'Primate', 'Rodent', 'Ungulate']
 
 MODEL_PATHS = {
-    "Resnet":        "mammal_classifier_resnet.pkl",
-    "Efficientnet":  "mammal_classifier_efficientnet.pkl",
-    "Mobilenet":     "mammal_classifier_mobilenet.pkl"
+    "Resnet":        "mammal_classifier_resnet_100.pkl",
+    "Efficientnet":  "mammal_classifier_efficientnet_100.pkl",
+    "Mobilenet":     "mammal_classifier_mobilenet_100.pkl"
 }
 
 models = {}
@@ -187,7 +187,7 @@ def build_interface():
             # Left Column: image upload, Actual label dropdown, and Classify button.
             with gr.Column():
                 gr.Markdown("""
-List of animals used to train the models (rougly 50 images per animal)
+List of animals used to train the models (rougly 100 images per animal)
 - **Carnivores**: Bears, leopards, lions, tigers, and wolves 
 - **Marsupials**: Kangaroos, koalas, opossums, wallabies, and wombats 
 - **Primates**:  Baboons, capuchin monkeys, chimpanzees, gorillas, and orangutans 
