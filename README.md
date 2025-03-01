@@ -1,35 +1,39 @@
 # Mammal-Type-Classifier
 
-This repository contains a mammal type classifier built using a pretrained neural network. The classifier can identify and categorize mammals into five primary groups: carnivores, marsupials, primates, rodents, and ungulates
+This repository contains an end-to-end process of creating a Mammal Type Classifier, and deploying the model into a Gradio application. The model classifies an animal image into one of five mammal groups. The application has a multi-model comparison feature, as well as a model performance, and fun fact summary through a LLM called Gemini from Google. 
 
-![Logo](model/images/output.png)
+The goal is to gain hands-on experience in developing an end-to-end machine learning project, from data acquisition and preprocessing to model training, evaluation, and deploying the model into an interactive application.
 
-## Overview
+# Table of Contents
+## [1. Model](#model)
+- Model Classification
+- Model Training 
 
-In this solo project, I:
+## [2. Application](#application)
+- Requirements
+- Gradio Demo
 
-1. **Data Collection and Preprocessing**: Curated a dataset of around 100 images per mammal type from DuckDuckGo image search.
+## 1. Model
+### Model Classification
+The model classifies an animal image into one of five mammal groups
+- Carnivore
+- Marsupial
+- Primate
+- Rodent
+- Ungulate
 
-2. **Model Fine-Tuning**: Fine-tuned a pretrained neural network to recognize distinct features for each mammal group.
+![Logo](utils/images/output.png)
 
-3. **Performance Evaluation**: Assessed the classifier's accuracy and generalization on new images.
+### Model Training
+For multi-model comparison I specifically used three pretrained CNNs
+- [ResNet](https://en.wikipedia.org/wiki/Residual_neural_network)
+- [EfficientNet](https://en.wikipedia.org/wiki/EfficientNet)
+- [MobileNet](https://en.wikipedia.org/wiki/MobileNet)
 
-## Usage
+## 2. Application
+### Requirements
 
-1. Clone this repository:
-```
-git clone https://github.com/RogerA11/Mammal-Type-Classifier.git
-```
+### Gradio Demo
+The application has a multi-model comparison feature, as well as a model performance, and fun fact summary through a LLM called Gemini from Google. 
 
-2. Navigate to the repository:
-```
-cd Mammal-Type-Classifier
-```
-
-3. Open and run `mammaltypeclassifier.ipynb` to explore the project details.
-
-## Contact
-
-For questions or collaboration, reach out to me via GitHub or email at roger.arendse713@gmail.com
-
-Thank you for your interest in the Mammal-Type-Classifier project!
+![Logo](utils/images/gradio.png)
