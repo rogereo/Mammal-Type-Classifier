@@ -6,3 +6,4 @@ numpy
 Pillow
 python-dotenv
 google-genai>=0.0.9
+pickle-mixin
