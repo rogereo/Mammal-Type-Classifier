@@ -8,7 +8,6 @@ This repository presents an end-to-end workflow for developing a Mammal Type Cla
 ### Model
 - Model Classification
 - Model Training 
--
 
 ### Application
 - Requirements
