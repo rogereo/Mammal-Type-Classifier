@@ -83,11 +83,11 @@ def generate_fun_fact(mammal_name):
     
     # mapping mammal types to specific animal examples
     animal_context = {
-        "Carnivore": "Bears, leopards, lions, tigers, and wolves",
-        "Marsupial": "Kangaroos, koalas, opossums, wallabies, and wombats",
-        "Primate": "Baboons, capuchin monkeys, chimpanzees, gorillas, and orangutans",
-        "Rodent": "Beavers, mice, porcupine, rats, and squirrels",
-        "Ungulate": "Deer, elk, giraffes, moose, and zebras"
+        "Carnivore": "bears, leopards, lions, tigers, and wolves",
+        "Marsupial": "kangaroos, koalas, opossums, wallabies, and wombats",
+        "Primate": "baboons, capuchin monkeys, chimpanzees, gorillas, and orangutans",
+        "Rodent": "beavers, mice, porcupine, rats, and squirrels",
+        "Ungulate": "deer, elk, giraffes, moose, and zebras"
     }
     
     # retrieve the list of animals for the given mammal type (if available)
@@ -180,6 +180,13 @@ def classify_mammal(image, actual_label, model_names):
 
 
 def build_interface():
+    # Custom CSS to set Helvetica font
+    custom_css = """
+    * {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+    }
+    """
+    
     with gr.Blocks() as demo:
         gr.Markdown("# Mammal Type Classifier")
 
@@ -187,26 +194,33 @@ def build_interface():
             # Left Column: image upload, Actual label dropdown, and Classify button.
             with gr.Column():
                 gr.Markdown("""
-List of animals used to train the models (rougly 100 images per animal)
-- **Carnivores**: Bears, leopards, lions, tigers, and wolves 
-- **Marsupials**: Kangaroos, koalas, opossums, wallabies, and wombats 
-- **Primates**:  Baboons, capuchin monkeys, chimpanzees, gorillas, and orangutans 
-- **Rodents**: Beavers, mice, porcupine, rats, and squirrels 
-- **Ungulates**: Deer, elk, giraffes, moose, and zebras \n
-(suggestion would be to google an image of an animal, take a screenshot, and paste it in below) 
-        """)
-                image_input = gr.Image(label="Upload a mammal image", type="pil")
+### 🎯 Model Training Data
+Each model was trained on ~100 images per animal:
+
+**🦁 Carnivores:** Bears, Leopards, Lions, Tigers, Wolves  
+**🦘 Marsupials:** Kangaroos, Koalas, Opossums, Wallabies, Wombats  
+**🐵 Primates:** Baboons, Capuchin Monkeys, Chimpanzees, Gorillas, Orangutans  
+**🐭 Rodents:** Beavers, Mice, Porcupines, Rats, Squirrels  
+**🦌 Ungulates:** Deer, Elk, Giraffes, Moose, Zebras
+
+### 📋 Instructions
+1. Upload an image of a mammal
+2. Select the correct animal type from the dropdown
+3. Click "🔍 Classify" to see results from all three models
+""")
+                
+                image_input = gr.Image(label="📤 Upload Mammal Image", type="pil")
                 actual_label = gr.Dropdown(
                     choices=CLASS_NAMES,
                     # value="Unknown",
-                    label="Actual label"
+                    label="Actual Mammal Type"
                 )
-                classify_button = gr.Button("Classify")
+                classify_button = gr.Button("🔍 Classify")
 
             # a row of three textboxes for model results (side by side)
             with gr.Column():
                 # model results textboxes
-                gr.Markdown("Model Performance")
+                gr.Markdown("### 📈 Model Performance")
                 gr.Markdown("<div style='font-size:11px;'>P = Prediction | A = Actual | L = Loss | P = Probability</div>")
                 with gr.Row():
                     result_output_1 = gr.Textbox(label="Resnet", lines=4)
@@ -215,9 +229,9 @@ List of animals used to train the models (rougly 100 images per animal)
                 
 
                 # gemini summary and Fun Fact textboxes
-                gr.Markdown("Google Gemini LLM")
-                summary_output = gr.Textbox(label="Performance Summary", lines=4)
-                fun_fact_output = gr.Textbox(label="Fun Fact (if any model predicts correctly)", lines=4)
+                gr.Markdown("### 🤖 Gemini AI Analysis")
+                summary_output = gr.Textbox(label="📈 Model Performance Summary", lines=4)
+                fun_fact_output = gr.Textbox(label="🎉 Fun Fact (when prediction is correct)", lines=4)
 
         def on_classify(img, actual):
             results, summary, fun_fact = classify_mammal(
