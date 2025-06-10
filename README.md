@@ -1,6 +1,6 @@
 # Mammal-Type-Classifier
 
-This repository presents an end-to-end workflow for developing a Mammal Type Classifier and deploying it as an interactive Gradio application. The model classifies animal images into one of five mammal groups: Carnivore, Marsupial, Primate, Rodent, or Ungulate. My goal with this project is to gain hands-on experience in the full machine learning pipeline—from data acquisition and preprocessing to model training, evaluation, and deployment in a user-friendly application
+This repository presents an end-to-end workflow for developing a Mammal Type Classifier and deploying it as an interactive Gradio application. The model classifies animal images into one of five mammal groups: Carnivore, Marsupial, Primate, Rodent, or Ungulate. My goal with this project is to gain hands-on experience in the full machine learning pipeline—from data acquisition and preprocessing to model training, evaluation, and deployment into a user-friendly application
 
 ![Logo](utils/images/prediction.png)
 
