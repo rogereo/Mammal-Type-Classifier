@@ -35,7 +35,7 @@ python app.py
 
 The Gradio interface will launch at `http://localhost:7860`
 
-![Logo](utils/images/wolf_example.png)
+![Logo](utils/images/leopard.png)
 
 ## Model Performance
 
@@ -90,19 +90,10 @@ Mammal-Type-Classifier/
 - **Educational Content**: AI-generated animal facts for correct predictions
 - **User-Friendly Interface**: Simple drag-and-drop image classification
 
-## Key Learnings
-
-This project provided hands-on experience with:
-- Automated data collection and preprocessing
-- Transfer learning with multiple CNN architectures
-- Model comparison and performance evaluation
-- ML model deployment via web interfaces
-- Integration of multiple AI services (vision + language models)
-
 ## Technical Stack
 
 - **Data Collection**: DuckDuckGo API, Requests
-- **ML Framework**: PyTorch/Fastai (inferred from .pkl files)
+- **ML Framework**: PyTorch/Fastai 
 - **Model Architectures**: ResNet, EfficientNet, MobileNet
 - **Deployment**: Gradio
 - **AI Integration**: Google Gemini LLM

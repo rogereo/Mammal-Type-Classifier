@@ -206,23 +206,24 @@ def build_interface():
                     """)
                 
                 # Create the main interface layout
+                gr.Markdown("### 📋 Instructions")
                 with gr.Row():
                     with gr.Column():
                         # left column with instructions
-                        gr.Markdown('### Step 1')
+                        gr.Markdown('Step 1')
                         gr.Markdown('Upload an image of a mammal from the list above')
                         image_input = gr.Image(label="Mammal Image", type="pil")
 
                     with gr.Column():
                         # right column with instructions
-                        gr.Markdown('### Step 2')
+                        gr.Markdown('Step 2')
                         gr.Markdown('Select the actual mammal type from the dropdown')
                         actual_label = gr.Dropdown(
                             choices=CLASS_NAMES,
                             # value="Unknown",
                             label="Actual Mammal Type"
                             )    
-                        gr.Markdown('### Step 3')
+                        gr.Markdown('Step 3')
                         gr.Markdown('Click "🔍 Classify" to see results from all three models')
                         classify_button = gr.Button("🔍 Classify")
                     
