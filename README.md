@@ -20,6 +20,13 @@ This classifier identifies mammals across five major taxonomic groups:
 pip install -r requirements.txt
 ```
 
+### Gemini API Setup
+1. Get your free Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Set your API key as an environment variable:
+  ```bash
+  export GEMINI_API_KEY="your-api-key-here"
+  ```
+
 ### Run the Application
 ```bash
 python app.py
