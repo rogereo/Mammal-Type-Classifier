@@ -47,8 +47,6 @@ Three pre-trained CNN architectures were fine-tuned and compared:
 | **EfficientNet** | Compound Scaling | High loss despite good probability scores |
 | **MobileNet** | Depthwise Separable Convolutions | Balanced uncertainty reflection |
 
-*Based on carnivore classification example: Only ResNet correctly predicted "Carnivore" with high confidence, while EfficientNet showed high loss (29.26) despite 1.0 probability, and MobileNet's lower probability (0.55) better reflected prediction uncertainty.*
-
 ## Project Structure
 
 ```
