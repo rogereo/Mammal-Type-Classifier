@@ -193,31 +193,41 @@ def build_interface():
         with gr.Row():
             # Left Column: image upload, Actual label dropdown, and Classify button.
             with gr.Column():
+                # Add custom CSS to the interface
                 gr.Markdown("""
-### 🎯 Model Training Data
-Each model was trained on ~100 images per animal:
+                    ### 🎯 Model Training Data
+                    Each model was trained on ~100 images per animal:
 
-**🦁 Carnivores:** Bears, Leopards, Lions, Tigers, Wolves  
-**🦘 Marsupials:** Kangaroos, Koalas, Opossums, Wallabies, Wombats  
-**🐵 Primates:** Baboons, Capuchin Monkeys, Chimpanzees, Gorillas, Orangutans  
-**🐭 Rodents:** Beavers, Mice, Porcupines, Rats, Squirrels  
-**🦌 Ungulates:** Deer, Elk, Giraffes, Moose, Zebras
-
-### 📋 Instructions
-1. Upload an image of a mammal
-2. Select the correct animal type from the dropdown
-3. Click "🔍 Classify" to see results from all three models
-""")
+                    **🦁 Carnivores:** Bears, Leopards, Lions, Tigers, Wolves  
+                    **🦘 Marsupials:** Kangaroos, Koalas, Opossums, Wallabies, Wombats  
+                    **🐵 Primates:** Baboons, Capuchin Monkeys, Chimpanzees, Gorillas, Orangutans  
+                    **🐭 Rodents:** Beavers, Mice, Porcupines, Rats, Squirrels  
+                    **🦌 Ungulates:** Deer, Elk, Giraffes, Moose, Zebras
+                    """)
                 
-                image_input = gr.Image(label="📤 Upload Mammal Image", type="pil")
-                actual_label = gr.Dropdown(
-                    choices=CLASS_NAMES,
-                    # value="Unknown",
-                    label="Actual Mammal Type"
-                )
-                classify_button = gr.Button("🔍 Classify")
+                # Create the main interface layout
+                with gr.Row():
+                    with gr.Column():
+                        # left column with instructions
+                        gr.Markdown('### Step 1')
+                        gr.Markdown('Upload an image of a mammal from the list above')
+                        image_input = gr.Image(label="Mammal Image", type="pil")
 
-            # a row of three textboxes for model results (side by side)
+                    with gr.Column():
+                        # right column with instructions
+                        gr.Markdown('### Step 2')
+                        gr.Markdown('Select the actual mammal type from the dropdown')
+                        actual_label = gr.Dropdown(
+                            choices=CLASS_NAMES,
+                            # value="Unknown",
+                            label="Actual Mammal Type"
+                            )    
+                        gr.Markdown('### Step 3')
+                        gr.Markdown('Click "🔍 Classify" to see results from all three models')
+                        classify_button = gr.Button("🔍 Classify")
+                    
+
+            # right Column: model results textboxes, Gemini summary, and fun fact textboxes
             with gr.Column():
                 # model results textboxes
                 gr.Markdown("### 📈 Model Performance")
@@ -239,6 +249,7 @@ Each model was trained on ~100 images per animal:
                 actual, 
                 MODEL_PATHS.keys()
                 )
+            
             # results is always a list of 3 strings
             while len(results) < 3:
                 results.append("")
