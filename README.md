@@ -26,7 +26,7 @@ pip install -r requirements.txt
   ```bash
   export GEMINI_API_KEY="your-api-key-here"
   ```
-    Note: Never commit API keys to version control. Consider using a .env file and ensure it's added to your .gitignore
+Note: Never commit API keys to version control. Consider using a .env file and ensure it's added to your .gitignore
 
 ### Run the Application
 ```bash
