@@ -4,7 +4,7 @@ An end-to-end machine learning project that classifies mammal images into five p
 
 ![Logo](utils/images/prediction.png)
 
-## 🎯 Project Overview
+## Project Overview
 
 This classifier identifies mammals across five major taxonomic groups:
 - **Carnivores**: Bears, Leopards, Lions, Tigers, Wolves
@@ -13,7 +13,7 @@ This classifier identifies mammals across five major taxonomic groups:
 - **Rodents**: Beavers, Mice, Porcupines, Rats, Squirrels
 - **Ungulates**: Deer, Elk, Giraffes, Moose, Zebras
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 ```bash
@@ -37,7 +37,7 @@ The Gradio interface will launch at `http://localhost:7860`
 
 ![Logo](utils/images/wolf_example.png)
 
-## 📊 Model Performance
+## Model Performance
 
 Three pre-trained CNN architectures were fine-tuned and compared:
 
@@ -49,7 +49,7 @@ Three pre-trained CNN architectures were fine-tuned and compared:
 
 *Based on carnivore classification example: Only ResNet correctly predicted "Carnivore" with high confidence, while EfficientNet showed high loss (29.26) despite 1.0 probability, and MobileNet's lower probability (0.55) better reflected prediction uncertainty.*
 
-## 🛠️ Project Structure
+## Project Structure
 
 ```
 Mammal-Type-Classifier/
@@ -66,7 +66,7 @@ Mammal-Type-Classifier/
 └── README.md
 ```
 
-## 🔄 Workflow
+## Workflow
 
 ### 1. Data Collection
 - Automated image scraping from DuckDuckGo search results
@@ -83,14 +83,14 @@ Mammal-Type-Classifier/
 - Multi-model comparison interface
 - AI-generated fun facts via Gemini LLM integration
 
-## 🌟 Features
+## Features
 
 - **Multi-Model Comparison**: Test the same image across all three models
 - **Performance Analytics**: View detailed prediction metrics
 - **Educational Content**: AI-generated animal facts for correct predictions
 - **User-Friendly Interface**: Simple drag-and-drop image classification
 
-## 🧠 Key Learnings
+## Key Learnings
 
 This project provided hands-on experience with:
 - Automated data collection and preprocessing
@@ -99,7 +99,7 @@ This project provided hands-on experience with:
 - ML model deployment via web interfaces
 - Integration of multiple AI services (vision + language models)
 
-## 🔧 Technical Stack
+## Technical Stack
 
 - **Data Collection**: DuckDuckGo API, Requests
 - **ML Framework**: PyTorch/Fastai (inferred from .pkl files)
